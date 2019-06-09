@@ -6,11 +6,10 @@ defmodule Summer.Application do
   use Application
 
   def start(_type, _args) do
-    # List all child processes to be supervised
-    children = [
-      # Starts a worker by calling: Summer.Worker.start_link(arg)
-      # {Summer.Worker, arg}
-    ]
+    children = Application.get_env(:summer, :servers)
+    |> Enum.map(fn (server) ->
+      {Summer.Connection, server}
+    end)
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

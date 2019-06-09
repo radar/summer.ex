@@ -12,6 +12,16 @@ use Mix.Config
 # apps, should be configured in the umbrella to avoid confusion.
 import_config "../apps/*/config/config.exs"
 
+config :summer,
+  servers: [
+    %{
+      host: "irc.freenode.net",
+      port: 6667,
+      nick: "elixir-helpa",
+      handler: Client.Handler
+    }
+  ]
+
 # Sample configuration (overrides the imported configuration above):
 #
 #     config :logger, :console,

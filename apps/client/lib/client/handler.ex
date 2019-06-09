@@ -9,6 +9,16 @@ defmodule Client.Handler do
     end
   end
 
+  def handle(connection, "authorize", [user | _rest], me, %{nick: nick} = sender, channel) do
+    if radar?(nick) do
+      People.authorize!(nick)
+    end
+  end
+
+  defp radar?(nick) do
+    String.downcase(nick) == "radar"
+  end
+
   # Rename to CatchAll?
   use Summer.Handler
 end

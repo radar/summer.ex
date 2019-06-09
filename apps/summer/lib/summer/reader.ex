@@ -20,6 +20,7 @@ defmodule Summer.Reader do
   defp parse(_connection, msg) when is_binary(msg), do: nil
 
   defp parse(connection, [sender, raw, channel, ":" <> message]) do
+    message = String.trim(message)
     if Regex.match?(~r/\d{3}/, raw) do
       Raw.handle(raw, sender, channel, message)
     else
@@ -33,7 +34,7 @@ defmodule Summer.Reader do
 
   defp parse(connection, sender, "PRIVMSG", channel, message) do
     case Regex.run(~r/^!(\w+)\s*(.*)/, message) do
-      [_match, command, args] -> connection |> Connection.handle_command(command, args, sender, channel)
+      [_match, command, args] -> connection |> Connection.handle_command(command, args |> String.split(" "), sender, channel)
       nil -> connection |> Connection.privmsg(sender.nick, message)
     end
   end

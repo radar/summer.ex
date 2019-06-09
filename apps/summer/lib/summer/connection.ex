@@ -2,9 +2,7 @@ defmodule Summer.Connection do
   use GenServer
 
   def init(%{host: host, port: port, nick: nick, handler: handler}) do
-    opts = [:binary, active: false, packet: :line]
-    {:ok, socket} = :gen_tcp.connect(host |> to_charlist, port, opts)
-
+    {:ok, socket} = Socket.connect(host, port)
     Task.start_link(Summer.Reader, :run, [self(), socket])
 
     {:ok, writer} = GenServer.start_link(Summer.Writer, [socket])

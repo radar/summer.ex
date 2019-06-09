@@ -1,4 +1,6 @@
 defmodule Summer.Writer do
+  alias Summer.Socket
+
   use GenServer
 
   def init([socket]) do
@@ -25,6 +27,6 @@ defmodule Summer.Writer do
 
   def reply(socket, message) do
     IO.puts ">> #{message}"
-    :gen_tcp.send(socket, "#{message}\r\n")
+    socket |> Socket.reply(message)
   end
 end

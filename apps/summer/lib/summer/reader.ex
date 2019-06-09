@@ -3,7 +3,7 @@ defmodule Summer.Reader do
   alias Summer.Raw
 
   def run(connection, socket) do
-    {:ok, msg} = :gen_tcp.recv(socket, 0)
+    {:ok, msg} = Socket.read(socket)
     IO.write "<< #{msg}"
     parse(connection, msg)
     run(connection, socket)

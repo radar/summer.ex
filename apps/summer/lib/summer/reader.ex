@@ -1,6 +1,5 @@
 defmodule Summer.Reader do
-  alias Summer.Connection
-  alias Summer.Raw
+  alias Summer.{Connection, Raw, Socket}
 
   def run(connection, socket) do
     {:ok, msg} = Socket.read(socket)

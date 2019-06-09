@@ -1,5 +1,6 @@
 defmodule Summer.Connection do
   use GenServer
+  alias Summer.Socket
 
   def init(%{host: host, port: port, nick: nick, handler: handler}) do
     {:ok, socket} = Socket.connect(host, port)

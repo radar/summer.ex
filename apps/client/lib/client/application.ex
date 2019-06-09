@@ -8,6 +8,7 @@ defmodule Client.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
+      Client.Repo
       # Starts a worker by calling: Client.Worker.start_link(arg)
       # {Client.Worker, arg}
     ]

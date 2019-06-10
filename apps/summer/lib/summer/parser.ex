@@ -42,6 +42,10 @@ defmodule Summer.Parser do
     end
   end
 
+  defp parse(conn, sender, "PART", channel, message) do
+    conn |> Conn.handle_event(:part, sender, channel, message |> String.trim)
+  end
+
   defp parse(_conn, _sender, _raw, _channel, "VERSION"), do: nil
 
   # Things like NOTICE + MODE messages from server during boot
@@ -50,7 +54,7 @@ defmodule Summer.Parser do
   end
 
   defp parse(conn, sender, "JOIN", channel) do
-    conn |> Conn.handle_event(:join, sender, channel)
+    conn |> Conn.handle_event(:join, sender |> parse_sender, channel |> String.trim)
   end
 
   defp parse_server_msg(_conn, _sender, _raw, _channel, _message), do: nil

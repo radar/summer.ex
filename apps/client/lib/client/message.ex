@@ -8,13 +8,14 @@ defmodule Client.Message do
 
     field(:text, :string)
     field(:type, :string)
-    field(:created_at, :naive_datetime)
     field(:hidden, :boolean)
+
+    timestamps(inserted_at: :created_at, updated_at: false)
   end
 
   def changeset(message, params \\ %{}) do
     message
-    |> Ecto.Changeset.cast(params, [:text, :type])
+    |> Ecto.Changeset.cast(params, [:text, :type, :hidden])
     |> Ecto.Changeset.put_assoc(:channel, params.channel)
     |> Ecto.Changeset.put_assoc(:person, params.person)
   end

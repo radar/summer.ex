@@ -29,7 +29,11 @@ defmodule Summer.Conn do
     event_handler.handle(conn, me, type, message)
   end
 
-  def handle_event(%Conn{event_handler: event_handler, me: me} = conn, type, sender, channel) do
+  def handle_event(%Conn{event_handler: event_handler} = conn, type, sender, channel, message) do
+    event_handler.handle(conn, type, sender, channel, message)
+  end
+
+  def handle_event(%Conn{event_handler: event_handler} = conn, type, sender, channel) do
     event_handler.handle(conn, type, sender, channel)
   end
 

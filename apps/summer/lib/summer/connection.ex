@@ -1,18 +1,34 @@
 defmodule Summer.Connection do
   use GenServer
-  alias Summer.Socket
+  alias Summer.{
+    CommandHandler,
+    Connection,
+    Message,
+    MessageHandler,
+    Reader,
+    Writer
+  }
 
-  def init(%{host: host, port: port, nick: nick, handler: handler}) do
-    {:ok, socket} = Socket.connect(host, port)
-    Task.start_link(Summer.Reader, :run, [self(), socket])
+  def init(%{socket: socket, nick: nick, command_handler: command_handler, message_handler: message_handler}) do
+    {:ok, command_handler} = command_handler.start_link(self())
+    {:ok, message_handler} = message_handler.start_link(self())
+    Task.start_link(Reader, :run, [self(), socket])
 
-    {:ok, writer} = GenServer.start_link(Summer.Writer, [socket])
-    {:ok, %{nick: nick, writer: writer, handler: handler}}
+    {:ok, writer} = GenServer.start_link(Writer, [socket])
+
+    connection = %{
+      nick: nick,
+      writer: writer,
+      command_handler: command_handler,
+      message_handler: message_handler
+    }
+
+    {:ok, connection}
   end
 
-  def start_link(%{nick: nick} = args) do
-    {:ok, connection} = GenServer.start_link(__MODULE__, args)
-    Summer.Connection.register(connection, %{nick: nick})
+  def start_link(socket, %{nick: nick} = args) do
+    {:ok, connection} = GenServer.start_link(__MODULE__, args |> Map.merge(%{socket: socket}))
+    Connection.register(connection, %{nick: nick})
     {:ok, connection}
   end
 
@@ -30,6 +46,10 @@ defmodule Summer.Connection do
 
   def handle_command(connection, command, args, sender, channel) do
     GenServer.cast(connection, {:command, command, args, sender, channel})
+  end
+
+  def handle_incoming_message(connection, sender, channel, text) do
+    GenServer.cast(connection, {:incoming_message, sender, channel, text})
   end
 
   def handle_cast({:register, %{nick: nick}}, %{writer: writer} = state) do
@@ -50,16 +70,27 @@ defmodule Summer.Connection do
     {:noreply, state}
   end
 
-  def handle_cast({:command, command, args, sender, channel}, %{handler: handler, nick: me} = state) do
-    handler.handle(self(), command, args, me, sender, channel)
+  def handle_cast({:command, command, args, sender, channel}, %{command_handler: command_handler, nick: me} = state) do
+    CommandHandler.handle(command_handler, command, args, me, sender, channel)
+    {:noreply, state}
+  end
+
+  def handle_cast({:incoming_message, sender, channel, text}, %{message_handler: message_handler, nick: me} = state) do
+    message = %Message{
+      type: "privmsg",
+      sender: sender,
+      channel: channel,
+      text: text,
+    }
+    MessageHandler.handle(message_handler, me, message)
     {:noreply, state}
   end
 
   defp write(writer, type, message) do
-    Summer.Writer.write(writer, type, message)
+    Writer.write(writer, type, message)
   end
 
   defp write(writer, type, dest, message) do
-    Summer.Writer.write(writer, type, dest, message)
+    Writer.write(writer, type, dest, message)
   end
 end

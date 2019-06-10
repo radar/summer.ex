@@ -34,8 +34,12 @@ defmodule Summer.Reader do
 
   defp parse(connection, sender, "PRIVMSG", channel, message) do
     case Regex.run(~r/^!(\w+)\s*(.*)/, message) do
-      [_match, command, args] -> connection |> Connection.handle_command(command, args |> String.split(" "), sender, channel)
-      nil -> connection |> Connection.privmsg(sender.nick, message)
+      [_match, command, args] ->
+        connection
+        |> Connection.handle_command(command, args |> String.split(" "), sender, channel)
+      nil ->
+        connection |>
+        Connection.handle_incoming_message(sender, channel, message)
     end
   end
 

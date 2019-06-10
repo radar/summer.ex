@@ -11,4 +11,11 @@ defmodule Client.Message do
     field :created_at, :naive_datetime
     field :hidden, :boolean
   end
+
+  def changeset(message, params \\ %{}) do
+    message
+    |> Ecto.Changeset.cast(params, [:text, :type])
+    |> Ecto.Changeset.put_assoc(:channel, params.channel)
+    |> Ecto.Changeset.put_assoc(:person, params.person)
+  end
 end

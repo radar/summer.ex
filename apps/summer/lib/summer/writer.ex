@@ -7,15 +7,15 @@ defmodule Summer.Writer do
     {:ok, socket}
   end
 
-  def write(writer, type, message) do
-    GenServer.cast(writer, {:write, type, message})
+  def write(writer, message) do
+    GenServer.cast(writer, {:write, message})
   end
 
   def write(writer, type, dest, message) do
     GenServer.cast(writer, {:write, type, dest, message})
   end
 
-  def handle_cast({:write, :normal, message}, socket) do
+  def handle_cast({:write, message}, socket) do
     reply(socket, message)
     {:noreply, socket}
   end

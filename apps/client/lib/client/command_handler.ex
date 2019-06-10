@@ -1,38 +1,27 @@
 defmodule Client.CommandHandler do
+  alias Summer.{Command, Conn, Message}
+
   alias Client.{People, Tip, Tips}
 
-  def run_command(connection, "botsnack", _parts, me, %{nick: nick} = sender, channel) do
+  def handle(conn, %Command{name: "botsnack", args: _parts, message: %Message{sender: %{nick: nick}} = message}) do
     if People.authorized?(nick) do
-      connection |> privmsg_reply(me, sender, channel, "Nom nom. Thanks, #{nick}!")
+      conn |> Conn.privmsg_reply(message, "Nom nom. Thanks, #{nick}!")
     else
-      connection |> privmsg_reply(me, sender, channel, "Who are you?")
+      conn |> Conn.privmsg_reply(message, "Who are you?")
     end
   end
 
-  def run_command(
-        connection,
-        "authorize",
-        [new_authorization | _rest],
-        me,
-        %{nick: nick} = sender,
-        channel
-      ) do
+  def handle(conn, %Command{name: "authorize", args: [new_authorization | _rest], message: %{sender: %{nick: nick} = message}}) do
     if radar?(nick) do
       People.authorize!(new_authorization)
 
-      connection
-      |> privmsg_reply(
-        me,
-        sender,
-        channel,
-        "#{new_authorization} is now authorized to (ab)use me."
-      )
+      conn |> Conn.privmsg_reply(message, "#{new_authorization} is now authorized to (ab)use me.")
     end
   end
 
-  def run_command(connection, command, _args, me, sender, channel) do
-    case Tips.find(command) do
-      %Tip{} = tip -> connection |> privmsg_reply(me, sender, channel, tip.text)
+  def handle(conn, %Command{name: name, message: message}) do
+    case Tips.find(name) do
+      %Tip{} = tip -> conn |> Conn.privmsg_reply(message, tip.text)
       nil -> nil
     end
   end
@@ -40,7 +29,4 @@ defmodule Client.CommandHandler do
   defp radar?(nick) do
     String.downcase(nick) == "radar"
   end
-
-  # Rename to CatchAll?
-  use Summer.CommandHandler
 end

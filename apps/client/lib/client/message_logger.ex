@@ -8,13 +8,12 @@ defmodule Client.MessageLogger do
     channel = Channels.find_or_create(channel_name)
     person = People.find_or_create(nick)
 
-    message =
-      Messages.create(%{
-        type: "privmsg",
-        channel: channel,
-        person: person,
-        text: text,
-        hidden: channel.hidden
-      })
+    Messages.create(%{
+      type: "privmsg",
+      channel: channel,
+      person: person,
+      text: text,
+      hidden: channel.hidden
+    })
   end
 end

@@ -18,8 +18,11 @@ config :summer,
       host: "irc.freenode.net",
       port: 6667,
       nick: "elixir-helpa",
+      channels: [
+        "#logga",
+      ],
       command_handler: Client.CommandHandler,
-      message_handler: Client.MessageHandler
+      event_handler: Client.EventHandler
     }
   ]
 

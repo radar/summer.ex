@@ -2,10 +2,9 @@ defmodule Summer.Connection do
   use GenServer
 
   alias Summer.{
-    CommandHandler,
-    Connection,
+    Command,
+    Conn,
     Message,
-    MessageHandler,
     Reader,
     Writer
   }
@@ -13,99 +12,43 @@ defmodule Summer.Connection do
   def init(%{
         socket: socket,
         nick: nick,
+        channels: channels,
         command_handler: command_handler,
-        message_handler: message_handler
+        event_handler: event_handler
       }) do
-    {:ok, command_handler} = command_handler.start_link(self())
-    {:ok, message_handler} = message_handler.start_link(self())
-    Task.start_link(Reader, :run, [self(), socket])
 
     {:ok, writer} = GenServer.start_link(Writer, [socket])
 
-    connection = %{
-      nick: nick,
+    conn = %Conn{
+      me: nick,
       writer: writer,
+      channels: channels,
       command_handler: command_handler,
-      message_handler: message_handler
+      event_handler: event_handler
     }
 
-    {:ok, connection}
+    Task.start_link(Reader, :run, [conn, socket])
+
+    {:ok, conn}
   end
 
-  def start_link(socket, %{nick: nick} = args) do
+  def start_link(socket, args) do
     {:ok, connection} = GenServer.start_link(__MODULE__, args |> Map.merge(%{socket: socket}))
-    Connection.register(connection, %{nick: nick})
+    GenServer.cast(connection, :register)
     {:ok, connection}
   end
 
-  def register(connection, args) do
-    GenServer.cast(connection, {:register, args})
+  def handle_info(:connected, %{channels: channels} = conn) do
+    channels |> Enum.each(&(Conn.join(conn, &1)))
+
+    {:noreply, conn}
   end
 
-  def reply(connection, message) do
-    GenServer.cast(connection, {:reply, message})
-  end
+  def handle_cast(:register, conn) do
+    conn |> Conn.register
 
-  def privmsg(connection, dest, message) do
-    GenServer.cast(connection, {:privmsg, dest, message})
-  end
+    Process.send_after(self(), :connected, 10_000)
 
-  def handle_command(connection, command, args, sender, channel) do
-    GenServer.cast(connection, {:command, command, args, sender, channel})
-  end
-
-  def handle_incoming_message(connection, sender, channel, text) do
-    GenServer.cast(connection, {:incoming_message, sender, channel, text})
-  end
-
-  def handle_cast({:register, %{nick: nick}}, %{writer: writer} = state) do
-    [
-      "USER #{nick} #{nick} #{nick} #{nick}",
-      "NICK #{nick}"
-    ]
-    |> Enum.each(&write(writer, :normal, &1))
-
-    {:noreply, state}
-  end
-
-  def handle_cast({:reply, message}, %{writer: writer} = state) do
-    write(writer, :normal, message)
-    {:noreply, state}
-  end
-
-  def handle_cast({:privmsg, dest, message}, %{writer: writer} = state) do
-    write(writer, :privmsg, dest, message)
-    {:noreply, state}
-  end
-
-  def handle_cast(
-        {:command, command, args, sender, channel},
-        %{command_handler: command_handler, nick: me} = state
-      ) do
-    CommandHandler.handle(command_handler, command, args, me, sender, channel)
-    {:noreply, state}
-  end
-
-  def handle_cast(
-        {:incoming_message, sender, channel, text},
-        %{message_handler: message_handler, nick: me} = state
-      ) do
-    message = %Message{
-      type: "privmsg",
-      sender: sender,
-      channel: channel,
-      text: text
-    }
-
-    MessageHandler.handle(message_handler, me, message)
-    {:noreply, state}
-  end
-
-  defp write(writer, type, message) do
-    Writer.write(writer, type, message)
-  end
-
-  defp write(writer, type, dest, message) do
-    Writer.write(writer, type, dest, message)
+    {:noreply, conn}
   end
 end

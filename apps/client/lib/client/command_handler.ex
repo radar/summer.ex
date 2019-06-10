@@ -1,5 +1,5 @@
 defmodule Client.CommandHandler do
-  alias Client.People
+  alias Client.{People, Tip, Tips}
 
   def run_command(connection, "botsnack", _parts, me, %{nick: nick} = sender, channel) do
     if People.authorized?(nick) do
@@ -27,6 +27,13 @@ defmodule Client.CommandHandler do
         channel,
         "#{new_authorization} is now authorized to (ab)use me."
       )
+    end
+  end
+
+  def run_command(connection, command, _args, me, sender, channel) do
+    case Tips.find(command) do
+      %Tip{} = tip -> connection |> privmsg_reply(me, sender, channel, tip.text)
+      nil -> nil
     end
   end
 

@@ -21,10 +21,6 @@ defmodule Summer.CommandHandler do
         run_command(connection, command, parts, me, sender, channel)
         {:noreply, connection}
       end
-
-      def run_command(_connection, command, _parts, _me, _sender, _channel) do
-        {:unhandled, command}
-      end
     end
   end
 

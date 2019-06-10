@@ -6,10 +6,11 @@ defmodule Summer.Application do
   use Application
 
   def start(_type, _args) do
-    children = Application.get_env(:summer, :servers)
-    |> Enum.map(fn (server) ->
-      {Summer.Server, server}
-    end)
+    children =
+      Application.get_env(:summer, :servers)
+      |> Enum.map(fn server ->
+        {Summer.Server, server}
+      end)
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

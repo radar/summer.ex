@@ -26,7 +26,7 @@ defmodule Summer.Writer do
   end
 
   def reply(socket, message) do
-    IO.puts ">> #{message}"
+    IO.puts(">> #{message}")
     socket |> Socket.reply(message)
   end
 end

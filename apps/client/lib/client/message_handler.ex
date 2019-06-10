@@ -10,5 +10,4 @@ defmodule Client.MessageHandler do
       ) do
     MessageLogger.log(message)
   end
-
 end

@@ -9,13 +9,26 @@ defmodule Client.CommandHandler do
     end
   end
 
-  def run_command(connection, "authorize", [new_authorization | _rest], me, %{nick: nick} = sender, channel) do
+  def run_command(
+        connection,
+        "authorize",
+        [new_authorization | _rest],
+        me,
+        %{nick: nick} = sender,
+        channel
+      ) do
     if radar?(nick) do
       People.authorize!(new_authorization)
-      connection |> privmsg_reply(me, sender, channel, "#{new_authorization} is now authorized to (ab)use me.")
+
+      connection
+      |> privmsg_reply(
+        me,
+        sender,
+        channel,
+        "#{new_authorization} is now authorized to (ab)use me."
+      )
     end
   end
-
 
   defp radar?(nick) do
     String.downcase(nick) == "radar"

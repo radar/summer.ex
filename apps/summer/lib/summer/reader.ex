@@ -3,7 +3,7 @@ defmodule Summer.Reader do
 
   def run(connection, socket) do
     {:ok, msg} = Socket.read(socket)
-    IO.write "<< #{msg}"
+    IO.write("<< #{msg}")
     parse(connection, msg)
     run(connection, socket)
   end
@@ -21,6 +21,7 @@ defmodule Summer.Reader do
 
   defp parse(connection, [sender, raw, channel, ":" <> message]) do
     message = String.trim(message)
+
     if Regex.match?(~r/\d{3}/, raw) do
       Raw.handle(raw, sender, channel, message)
     else
@@ -37,9 +38,10 @@ defmodule Summer.Reader do
       [_match, command, args] ->
         connection
         |> Connection.handle_command(command, args |> String.split(" "), sender, channel)
+
       nil ->
-        connection |>
-        Connection.handle_incoming_message(sender, channel, message)
+        connection
+        |> Connection.handle_incoming_message(sender, channel, message)
     end
   end
 

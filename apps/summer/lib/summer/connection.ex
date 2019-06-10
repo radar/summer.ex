@@ -1,5 +1,6 @@
 defmodule Summer.Connection do
   use GenServer
+
   alias Summer.{
     CommandHandler,
     Connection,
@@ -9,7 +10,12 @@ defmodule Summer.Connection do
     Writer
   }
 
-  def init(%{socket: socket, nick: nick, command_handler: command_handler, message_handler: message_handler}) do
+  def init(%{
+        socket: socket,
+        nick: nick,
+        command_handler: command_handler,
+        message_handler: message_handler
+      }) do
     {:ok, command_handler} = command_handler.start_link(self())
     {:ok, message_handler} = message_handler.start_link(self())
     Task.start_link(Reader, :run, [self(), socket])
@@ -56,7 +62,9 @@ defmodule Summer.Connection do
     [
       "USER #{nick} #{nick} #{nick} #{nick}",
       "NICK #{nick}"
-    ] |> Enum.each(&(write(writer, :normal, &1)))
+    ]
+    |> Enum.each(&write(writer, :normal, &1))
+
     {:noreply, state}
   end
 
@@ -70,18 +78,25 @@ defmodule Summer.Connection do
     {:noreply, state}
   end
 
-  def handle_cast({:command, command, args, sender, channel}, %{command_handler: command_handler, nick: me} = state) do
+  def handle_cast(
+        {:command, command, args, sender, channel},
+        %{command_handler: command_handler, nick: me} = state
+      ) do
     CommandHandler.handle(command_handler, command, args, me, sender, channel)
     {:noreply, state}
   end
 
-  def handle_cast({:incoming_message, sender, channel, text}, %{message_handler: message_handler, nick: me} = state) do
+  def handle_cast(
+        {:incoming_message, sender, channel, text},
+        %{message_handler: message_handler, nick: me} = state
+      ) do
     message = %Message{
       type: "privmsg",
       sender: sender,
       channel: channel,
-      text: text,
+      text: text
     }
+
     MessageHandler.handle(message_handler, me, message)
     {:noreply, state}
   end

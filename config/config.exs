@@ -19,7 +19,7 @@ config :summer,
       port: 6667,
       nick: "elixir-helpa",
       command_handler: Client.CommandHandler,
-      message_handler: Client.MessageHandler,
+      message_handler: Client.MessageHandler
     }
   ]
 

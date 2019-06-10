@@ -3,13 +3,13 @@ defmodule Client.Message do
   alias Client.{Channel, Person}
 
   schema "messages" do
-    belongs_to :channel, Channel
-    belongs_to :person, Person
+    belongs_to(:channel, Channel)
+    belongs_to(:person, Person)
 
-    field :text, :string
-    field :type, :string
-    field :created_at, :naive_datetime
-    field :hidden, :boolean
+    field(:text, :string)
+    field(:type, :string)
+    field(:created_at, :naive_datetime)
+    field(:hidden, :boolean)
   end
 
   def changeset(message, params \\ %{}) do

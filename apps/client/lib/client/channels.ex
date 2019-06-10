@@ -4,9 +4,10 @@ defmodule Client.Channels do
   import Ecto.Query
 
   def find_or_create(name) do
-    channel = from(c in Channel, where: ilike(c.name, ^name))
-    |> first
-    |> Repo.one
+    channel =
+      from(c in Channel, where: ilike(c.name, ^name))
+      |> first
+      |> Repo.one()
 
     case channel do
       nil -> create_channel(name)
@@ -15,6 +16,6 @@ defmodule Client.Channels do
   end
 
   defp create_channel(name) do
-    %Channel{name: name, hidden: true} |> Repo.insert!
+    %Channel{name: name, hidden: true} |> Repo.insert!()
   end
 end
